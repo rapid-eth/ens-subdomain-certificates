@@ -1,0 +1,32 @@
+{
+  "name": "ens-subdomain-certificates",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "./untruffle/compile.sh; node ./untruffle/buildContractJSON.js",
+    "compile5": "./untruffle/compile5.sh; node ./untruffle/buildContractJSON.js",
+    "deploy": "node ./deploy",
+    "ganache": "SECRET=`cat ./secret.txt` && node ./node_modules/ganache-cli/cli.js -i 5777 -p 7545 -m \"$SECRET\"",
+    "task": "node ./tasks"
+  },
+  "author": "Joe Bernitt",
+  "license": "ISC",
+  "dependencies": {
+    "@ensdomains/dnssec-oracle": "^0.1.2",
+    "@ensdomains/ens": "^0.3.11",
+    "ethers": "^4.0.42",
+    "module-alias": "^2.2.2",
+    "openzeppelin-solidity": "^2.4.0"
+  },
+  "_moduleAliases": {
+    "@root": ".",
+    "@contracts": "build/contracts",
+    "@deployed": "build/deployed",
+    "@utils": "untruffle/utils"
+  },
+  "devDependencies": {
+    "ganache-cli": "6.4.1"
+  }
+}
