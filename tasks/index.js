@@ -8,7 +8,9 @@ const emptyBytes = "0x0000000000000000000000000000000000000000000000000000000000
 
 const rinkebyResolver = "0x06E6B4E68b0B9B2617b35Eec811535050999282F"
 
-const rinkebyENS = "0xe7410170f87102DF0055eB195163A03B7F2Bff4A"
+const ENS_REGISTRY_ADDRESS = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" //on all public networks
+
+const rinkebyENS = ENS_REGISTRY_ADDRESS
 const abi = require("../build/contracts/ENS.json").abi
 const ensContract = utils.getContract(rinkebyENS,abi)
 
@@ -23,8 +25,8 @@ const baseRegistrarContract = utils.getContract(baseRegistrarAddress,brABI)
 
 
 const base = "eth"
-const domain = "rtest2"
-const subdomain = "rapid"
+const domain = "joe"
+const subdomain = "newday"
 const domainFull = domain + "." + base
 const subdomainFull = subdomain + "." + domainFull
 
@@ -35,10 +37,10 @@ const main = async () => {
     await printInfo()
     // await configure()
     // await transferOwnership()
-    let sig = await createAndSignCertificate()
-    await registerCertificate(sig)
-    //await register()
-    await printInfo()
+    // let sig = await createAndSignCertificate()
+    // await registerCertificate(sig)
+    // // //await register()
+    // await printInfo()
 
 
     console.log("Done")
@@ -102,6 +104,20 @@ const registerCertificate = async (sig) => {
     console.log("registerCertificate done")
 }
 
+const getControlBack = async () => {
+    let domainNamehash = ethers.utils.namehash(domainFull)
+    let ensOwner = await ensContract.owner(domainNamehash);
+    console.log("Domain Owner: "  + ensOwner)
+    const subdomainContract = utils.getDeployedContract('RapidSubdomainRegistrar')
+
+    let sdc = new ethers.Contract(ensOwner, subdomainContract.interface.abi, deployAccount)
+    let tx = await sdc.withdrawDomain(domainNamehash)
+    await tx.wait()
+    let ensOwner2 = await ensContract.owner(domainNamehash);
+    console.log("Domain Owner: "  + ensOwner2)
+
+}
+
 const test = async () => {
 
     let namehash = ethers.utils.namehash(subdomainFull)
@@ -123,6 +139,8 @@ const printInfo = async () => {
     console.log("Subdomain namehash:", subdomainNamehash)
     console.log("subdomain keccak: " + subKeccak)
     console.log("***********************************************")
+    let record = await ensContract.recordExists(domainNamehash);
+    console.log("Record Exists: "  + record)
     let ensOwner = await ensContract.owner(domainNamehash);
     console.log("Domain Owner: "  + ensOwner)
     let ensSubOwner = await ensContract.owner(subdomainNamehash);

@@ -12,15 +12,6 @@ contract RapidSubdomainRegistrar is SimpleSubdomainRegistrar {
 
     constructor(ENS ens) SimpleSubdomainRegistrar(ens) public { }
 
-    // override
-    // struct Domain {
-    //     string name;
-    //     address payable owner;
-    //     uint price;
-    //     mapping (address => bool) delegates;
-    // }
-
-
     /**
      * @dev Configures a domain for sale.
      * @param name The name to configure.

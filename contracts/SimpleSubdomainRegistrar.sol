@@ -106,14 +106,10 @@ contract SimpleSubdomainRegistrar {
         }
 
         if (keccak256(abi.encodePacked(domain.name)) != label) {
-            // New listing
             domain.name = name;
         }
 
         domain.price = price;
-
-        //@todo
-        //emit DomainConfigured(label);
     }
 
     /**
