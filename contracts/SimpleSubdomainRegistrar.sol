@@ -1,7 +1,7 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.2;
 
-import "./subdomain-registrar/Resolver.sol";
-import "./ens/ENS.sol";
+import "./Resolver.sol";
+import "./ENS.sol";
 
 contract SimpleSubdomainRegistrar {
 

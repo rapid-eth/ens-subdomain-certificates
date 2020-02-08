@@ -13,11 +13,11 @@ const ENS_REGISTRY_ADDRESS = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" //on a
 const rinkebyENS = ENS_REGISTRY_ADDRESS
 const abi = require("../build/contracts/ENS.json").abi
 const ensContract = utils.getContract(rinkebyENS,abi)
+//const ensContract = utils.getDeployedContract('ENSRegistry')
 
 const subdomainContract = utils.getDeployedContract('RapidSubdomainRegistrar')
 const deployAccount = utils.ethersAccount(0)
 const otherAccount = utils.ethersAccount(1)
-const contract = subdomainContract.connect(deployAccount)
 
 const baseRegistrarAddress = "0x53CEb15b76023FBEC5Bb39450214926F6aA77d2e"
 const brABI = require("../build/contracts/BaseRegistrar.json").abi
@@ -25,8 +25,8 @@ const baseRegistrarContract = utils.getContract(baseRegistrarAddress,brABI)
 
 
 const base = "eth"
-const domain = "joe"
-const subdomain = "newday"
+const domain = "wtf"
+const subdomain = "assy"
 const domainFull = domain + "." + base
 const subdomainFull = subdomain + "." + domainFull
 
@@ -34,13 +34,18 @@ const subdomainFull = subdomain + "." + domainFull
 const main = async () => {
     console.log("Running Main Task...")
 
+    console.log("Subdomain Contract address: "+ subdomainContract.address)
+
     await printInfo()
-    // await configure()
-    // await transferOwnership()
+    //await configure()
+   // await transferOwnership()
+
     // let sig = await createAndSignCertificate()
     // await registerCertificate(sig)
-    // // //await register()
-    // await printInfo()
+
+    //await register()
+
+   // await printInfo()
 
 
     console.log("Done")
@@ -63,7 +68,7 @@ const transferOwnership = async () => {
 
     let domainHash = ethers.utils.namehash(domainFull)
     ec = ensContract.connect(deployAccount)
-    let tx = await ec.setOwner(domainHash, contract.address)
+    let tx = await ec.setOwner(domainHash, subdomainContract.address)
     await tx.wait()
 
     //console.log(tx)
@@ -76,7 +81,7 @@ const register = async () => {
 
     let dk = ethers.utils.id(domain)
     let price = ethers.utils.parseEther(".01")
-    let tx = await contract.register(dk, subdomain, utils.emptyAddress, rinkebyResolver, {value: price})
+    let tx = await contract.register(dk, subdomain, utils.emptyAddress, ensContract.address, {value: price})
     await tx.wait()
     console.log("register done")
 }
@@ -98,7 +103,7 @@ const registerCertificate = async (sig) => {
     const contract = subdomainContract.connect(otherAccount)
     let domainHash = ethers.utils.id(domain)
 
-    let tx = await contract.registerCertificate(domainHash, subdomain, utils.emptyAddress, rinkebyResolver, sig)
+    let tx = await contract.registerCertificate(domainHash, subdomain, utils.emptyAddress, ensContract.address, sig)
     await tx.wait()
 
     console.log("registerCertificate done")
@@ -145,13 +150,13 @@ const printInfo = async () => {
     console.log("Domain Owner: "  + ensOwner)
     let ensSubOwner = await ensContract.owner(subdomainNamehash);
     console.log("Subdomain Owner: "  + ensSubOwner)
-    let contractDomainInfo = await contract.domains(hashDomain);
+    let contractDomainInfo = await subdomainContract.domains(hashDomain);
     console.log("Contract Domain info: ", contractDomainInfo)
     console.log("***********************************************")
-    let domainResolveAddress = await provider.resolveName(domainFull)
-    let subdomainResolveAddress = await provider.resolveName(subdomainFull)
-    console.log(domainFull + ":" + " " + domainResolveAddress)
-    console.log(subdomainFull + ":" + " " + subdomainResolveAddress)
+    // let domainResolveAddress = await provider.resolveName(domainFull)
+    // let subdomainResolveAddress = await provider.resolveName(subdomainFull)
+    // console.log(domainFull + ":" + " " + domainResolveAddress)
+    // console.log(subdomainFull + ":" + " " + subdomainResolveAddress)
     console.log("*************| END INFO |************************")
 
 }
