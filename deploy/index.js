@@ -12,9 +12,13 @@ const main = async () => {
 }
 
 const deployRinkeby = async () => {
+
+    const metaProxy = await utils.deployContractAndWriteToFile('MetaProxy', deployAccount, [])
+    console.log("Meta Proxy deployed at address: " + metaProxy.address)
+
     let rinkebyENS = ENS_REGISTRY_ADDRESS
-    let constructorParams = [rinkebyENS]
-    const exampleContract = await utils.deployContractAndWriteToFile('RapidSubdomainRegistrar', deployAccount, constructorParams)
+    let constructorParams = [rinkebyENS,metaProxy.address]
+    const exampleContract = await utils.deployContractAndWriteToFile('RapidSubdomainRegistrarMeta', deployAccount, constructorParams)
     console.log("Contract deployed at address: " + exampleContract.address)
 }
 
