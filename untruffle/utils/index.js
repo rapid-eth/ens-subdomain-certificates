@@ -1,6 +1,6 @@
 require('module-alias/register')
 
-const ethers = require("ethers");
+const ethers = require("../../meta-lib").ethers;
 //uncomment and run `npm install ipfs-http-client` to use IPFS
 //const ipfs = require("./ipfs");
 const misc = require("./misc");
@@ -33,8 +33,6 @@ if (process.env.NETWORK === "mainnet") {
   networkID = "5777"; //todo
   networkName = 'ganache'
 }
-
-console.log(provider)
 
 const secrets = require('@root/secrets.json')
 const mnemonic = secrets.mnemonic;
@@ -108,6 +106,7 @@ const emptyAddress = '0x0000000000000000000000000000000000000000'
 
 module.exports = {
   // ...ipfs,
+  ethers,
   ...misc,
   ...signing,
   readDeployedFile,

@@ -2,15 +2,16 @@ pragma solidity ^0.6.2;
 
 import "./SimpleSubdomainRegistrar.sol";
 import "./ECDSA.sol";
+import "./MetaWrapper.sol";
 
-contract RapidSubdomainRegistrar is SimpleSubdomainRegistrar {
+contract RapidSubdomainRegistrarMeta is SimpleSubdomainRegistrar, MetaWrapper {
 
     using ECDSA for bytes32;
 
     // mapping (address => bool) delegates;
     mapping (bytes32 => bool) public certificateRedeemed;
 
-    constructor(ENS ens) SimpleSubdomainRegistrar(ens) public { }
+    constructor(ENS _ens, address _metaProxy) SimpleSubdomainRegistrar(_ens) MetaWrapper(_metaProxy) public { }
 
     /**
      * @dev Configures a domain for sale.
@@ -67,19 +68,21 @@ contract RapidSubdomainRegistrar is SimpleSubdomainRegistrar {
         require(ens.owner(keccak256(abi.encodePacked(domainNode, subdomainLabel))) == address(0), "subdomain taken");
 
         //verify certificate
-        require(verifyCertificate(domainLabel, signature), "certificate not valid");
-        bytes32 cid = certificateId(domainLabel, msg.sender);
+        require(verifyCertificate(domainLabel, signature, getSender()), "certificate not valid");
+        bytes32 cid = certificateId(domainLabel, getSender());
         certificateRedeemed[cid] = true;
 
         if (subdomainOwner == address(0x0)) {
-            subdomainOwner = msg.sender;
+            subdomainOwner = getSender();
         }
 
         doRegistration(domainNode, subdomainLabel, subdomainOwner, Resolver(resolver));
+        
+        emit NewRegistration(domainLabel, subdomain, subdomainOwner);
     }
 
-    function verifyCertificate(bytes32 domainLabel, bytes memory signature) internal view returns (bool) {
-        bytes32 cid = certificateId(domainLabel, msg.sender);
+    function verifyCertificate(bytes32 domainLabel, bytes memory signature, address _sender) internal view returns (bool) {
+        bytes32 cid = certificateId(domainLabel, _sender);
         if (certificateRedeemed[cid]) {
             return false;
         }
