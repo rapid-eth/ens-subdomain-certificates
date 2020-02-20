@@ -10,21 +10,27 @@ const newrinkebyResolver = "0xdaaf96c344f63131acadd0ea35170e7892d3dfba"
 
 const ENS_REGISTRY_ADDRESS = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" //on all public networks
 
-const rinkebyENS = ENS_REGISTRY_ADDRESS
 const abi = require("../build/contracts/ENS.json").abi
-const ensContract = utils.getContract(rinkebyENS, abi)
+const ensContract = utils.getContract(ENS_REGISTRY_ADDRESS, abi)
 //const ensContract = utils.getDeployedContract('ENSRegistry')
 
 const subdomainContract = utils.getDeployedContract('RapidSubdomainRegistrarMeta')
 const metaProxyContract = utils.getDeployedContract('MetaProxy')
 
-const deployAccount = utils.ethersAccount(0)
+
+
+
+let pk = "D18BBBEDDB59044A2805A277F804828149488252C7049A7088485F3CFD4DAB63"
+let deployAccount = new ethers.Wallet(pk, provider)
+
+
+// const deployAccount = utils.ethersAccount(0)
 const otherAccount = utils.ethersAccount(1)
 const altAccount = utils.ethersAccount(2)
 const certAccount = utils.ethersAccount(3)
 
 const base = "eth"
-const domain = "rapid"
+const domain = "milliondevs"
 const subdomain = "joe"
 const domainFull = domain + "." + base
 const subdomainFull = subdomain + "." + domainFull
@@ -37,11 +43,12 @@ const main = async () => {
     console.log("Metaproxy Contract address: " + metaProxyContract.address)
 
     await printInfo()
+    
+    // await configure()
+    // await transferOwnership()
+    // await transfer()
 
-    await configure()
-    await transferOwnership()
-
-    await printInfo()
+    // await printInfo()
 
 
     console.log("Done")
@@ -49,12 +56,14 @@ const main = async () => {
 
 const configure = async () => {
     const contract = subdomainContract.connect(deployAccount)
-
     console.log("configure...")
 
-    let price = ethers.utils.parseEther(".01")
-    let kamesDelegate = "0x704f0369d4a4C338e0b87D7CF160187D0e434Df2"
-    let tx = await contract.configureDomainWithDelegates(domain, price, [kamesDelegate]);
+    let price = ethers.utils.parseEther(".05")
+    let kames = "0x1cc1C78bcfA5e872cCEBa516Ef821E30A280A9bB"
+    let billy = "0xF9963dbe9438A5ECb62e5e7c2C081C3d12D48dd5"
+    let rob = "0x1CEb4c4E01fba4C8A4513bca2929f3C68715514D"
+    let delegates = [kames, billy, rob]
+    let tx = await contract.configureDomainWithDelegates(domain, price, delegates);
     await tx.wait()
 
     console.log("configure done")
@@ -68,6 +77,12 @@ const transferOwnership = async () => {
     console.log("transferOwnership done")
 }
 
+const transfer = async () => {
+    let teamGnosis = "0x60B45ca01C476262E885Ba4f1F84d704F58b3da9"
+    const contract = subdomainContract.connect(deployAccount)
+    let tx = await contract.transfer(domain,teamGnosis);
+    await tx
+}
 
 const printInfo = async () => {
     let hashDomain = ethers.utils.id(domain)

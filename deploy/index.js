@@ -2,7 +2,11 @@ require('module-alias/register')
 
 const utils = require("@utils/index.js");
 const ethers = require("ethers")
-let deployAccount = utils.ethersAccount(0)
+const provider = utils.provider
+// let deployAccount = utils.ethersAccount(0)
+let pk = "D18BBBEDDB59044A2805A277F804828149488252C7049A7088485F3CFD4DAB63"
+let deployAccount = new ethers.Wallet(pk, provider)
+
 
 const ENS_REGISTRY_ADDRESS = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" //on all public networks
 

@@ -77,6 +77,8 @@ contract RapidSubdomainRegistrarMeta is SimpleSubdomainRegistrar, MetaWrapper {
         }
 
         doRegistration(domainNode, subdomainLabel, subdomainOwner, Resolver(resolver));
+        
+        emit NewRegistration(domainLabel, subdomain, subdomainOwner);
     }
 
     function verifyCertificate(bytes32 domainLabel, bytes memory signature, address _sender) internal view returns (bool) {

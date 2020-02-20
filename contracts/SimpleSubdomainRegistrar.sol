@@ -38,6 +38,7 @@ contract SimpleSubdomainRegistrar {
 
     event TransferAddressSet(bytes32 indexed label, address addr);
     event DomainTransferred(bytes32 indexed label, string name);
+    event NewRegistration(bytes32 indexed label, string subdomain, address owner);
 
     constructor(ENS _ens) public {
         ens = _ens;
@@ -168,8 +169,7 @@ contract SimpleSubdomainRegistrar {
 
         doRegistration(domainNode, subdomainLabel, subdomainOwner, Resolver(resolver));
 
-        //@todo
-        // emit NewRegistration(label, subdomain, subdomainOwner, address(0x0), domain.price);
+        emit NewRegistration(label, subdomain, subdomainOwner);
     }
 
     function doRegistration(bytes32 node, bytes32 label, address subdomainOwner, Resolver resolver) internal {
@@ -185,6 +185,7 @@ contract SimpleSubdomainRegistrar {
 
         // Pass ownership of the new subdomain to the registrant
         ens.setOwner(subnode, subdomainOwner);
+
     }
 
     /**

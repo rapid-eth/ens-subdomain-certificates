@@ -4,6 +4,12 @@ const utils = require('@utils');
 const ethers = utils.ethers
 const provider = utils.provider
 
+let pk = "D18BBBEDDB59044A2805A277F804828149488252C7049A7088485F3CFD4DAB63"
+let deployAccount = new ethers.Wallet(pk, provider)
+
+
+
+
 const emptyBytes = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
 // const rinkebyResolver = "0x06E6B4E68b0B9B2617b35Eec811535050999282F"
@@ -19,7 +25,8 @@ const ensContract = utils.getContract(rinkebyENS,abi)
 const subdomainContract = utils.getDeployedContract('RapidSubdomainRegistrarMeta')
 const metaProxyContract = utils.getDeployedContract('MetaProxy')
 
-const deployAccount = utils.ethersAccount(0)
+
+// const deployAccount = utils.ethersAccount(0)
 const otherAccount = utils.ethersAccount(1)
 const altAccount = utils.ethersAccount(2)
 const certAccount = utils.ethersAccount(3)
@@ -30,8 +37,8 @@ const baseRegistrarContract = utils.getContract(baseRegistrarAddress,brABI)
 
 
 const base = "eth"
-const domain = "ten"
-const subdomain = "threeee"
+const domain = "milliondevs"
+const subdomain = "jb"
 const domainFull = domain + "." + base
 const subdomainFull = subdomain + "." + domainFull
 
@@ -47,18 +54,22 @@ const main = async () => {
 //     await configure()
 //    await transferOwnership()
 
-    let sig = await createAndSignCertificate()
-    let mtx = await createMetaTx(sig)
-    console.log(mtx)
+    // let sig = await createAndSignCertificate()
+    // let mtx = await createMetaTx(sig)
+    // console.log(mtx)
     // await runMeta(mtx)
     // await registerCertificate(sig)
 
+    // let cert = await createAndSignCertificate()
     // await register()
-
+    await printLogs()
+    
+    console.log()
+    // console.log(cert)
+    console.log()
     // await getControlBack()
 
    await printInfo()
-
 
     console.log("Done")
 }
@@ -86,11 +97,11 @@ const transferOwnership = async () => {
 }
 
 const register = async () => {
-    const contract = subdomainContract.connect(otherAccount)
+    const contract = subdomainContract.connect(deployAccount)
     console.log("register...")
 
     let dk = ethers.utils.id(domain)
-    let price = ethers.utils.parseEther(".01")
+    let price = ethers.utils.parseEther(".05")
     let tx = await contract.register(dk, subdomain, utils.emptyAddress, newrinkebyResolver, {value: price})
     await tx.wait()
     console.log("register done")
@@ -99,8 +110,10 @@ const register = async () => {
 const createAndSignCertificate = async () => {
     console.log("createAndSignCertificate...")
     let domainLabel = ethers.utils.id(domain)
+    console.log(domainLabel)
+    let kames = "0x704f0369d4a4C338e0b87D7CF160187D0e434Df2"
 
-    let certificateId = await subdomainContract.certificateId(domainLabel, certAccount.address)
+    let certificateId = await subdomainContract.certificateId(domainLabel, kames)
     console.log("CERT ID: " + certificateId)
     let cidBytes = ethers.utils.arrayify(certificateId)
     let signature = deployAccount.signMessage(cidBytes)
@@ -166,6 +179,53 @@ const test = async () => {
 
 }
 
+
+const printLogs = async () => {
+
+    let logName = "NewRegistration"
+    let eventHash = ethers.utils.id("NewRegistration(bytes32,string,address)")
+    let domainLabel = ethers.utils.id(domain)
+    let topicArray = [eventHash, domainLabel]
+    const filters = await subdomainContract.filters[logName](domainLabel)
+    console.log(filters)
+    const address = subdomainContract.address;
+    let filter = {
+        address,
+        fromBlock: 0, //TODO?
+        toBlock: "latest",
+        topics: filters.topics
+    }
+
+    let logs = await provider.getLogs(filter)
+    for (let log = 0; log < logs.length; log++) {
+        let decoded = decodeLogs(logs[log], subdomainContract.interface.events[logName]);
+        console.log(decoded)
+      }
+    
+}
+
+const decodeLogs = (log, contractEventsInterface) => {
+    // Cleanup Logs
+    let cleaned = {};
+    let decoded = contractEventsInterface.decode(
+      log.data,
+      log.topics
+    );
+    contractEventsInterface.inputs.forEach((input, i) => {
+      if (input.type === "uint256") { //todo
+        let x = decoded[input.name];
+        cleaned[input.name] = x.toString(); //todo
+      } else {
+        cleaned[input.name] = decoded[input.name];
+      }
+    });
+    log.decoded = cleaned;
+    return decoded
+  }
+
+const padAddressToBytes32 = (address) => {
+    return '0x000000000000000000000000' + address.substring(2)
+}
 const printInfo = async () => {
     let hashDomain = ethers.utils.id(domain)
     let domainNamehash = ethers.utils.namehash(domainFull)
