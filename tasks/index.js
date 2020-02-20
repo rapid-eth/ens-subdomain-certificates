@@ -12,7 +12,7 @@ let deployAccount = new ethers.Wallet(pk, provider)
 
 const emptyBytes = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-// const rinkebyResolver = "0x06E6B4E68b0B9B2617b35Eec811535050999282F"
+const rinkebyResolver = "0x06E6B4E68b0B9B2617b35Eec811535050999282F"
 const newrinkebyResolver = "0xdaaf96c344f63131acadd0ea35170e7892d3dfba"
 
 const ENS_REGISTRY_ADDRESS = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" //on all public networks
@@ -30,6 +30,7 @@ const metaProxyContract = utils.getDeployedContract('MetaProxy')
 const otherAccount = utils.ethersAccount(1)
 const altAccount = utils.ethersAccount(2)
 const certAccount = utils.ethersAccount(3)
+
 
 const baseRegistrarAddress = "0x53CEb15b76023FBEC5Bb39450214926F6aA77d2e"
 const brABI = require("../build/contracts/BaseRegistrar.json").abi
@@ -50,15 +51,15 @@ const main = async () => {
     console.log("Metaproxy Contract address: "+ metaProxyContract.address)
 
     await printInfo()
-    // process.exit()
 //     await configure()
 //    await transferOwnership()
 
-    // let sig = await createAndSignCertificate()
-    // let mtx = await createMetaTx(sig)
-    // console.log(mtx)
-    // await runMeta(mtx)
-    // await registerCertificate(sig)
+    //await configure()
+    await transferOwnership()
+
+    //await testRegistryFunctions()
+    await register()
+    await printInfo()
 
     // let cert = await createAndSignCertificate()
     // await register()
@@ -96,12 +97,37 @@ const transferOwnership = async () => {
     console.log("transferOwnership done")
 }
 
+const testRegistryFunctions = async () => {
+    console.log("testRegistryFunctions...")
+
+    let domainHash = ethers.utils.namehash(domainFull)
+    let subdomainHash = ethers.utils.namehash(subdomainFull)
+    let subKeccak = ethers.utils.id(subdomain)
+
+
+    ec = ensContract.connect(altAccount)
+    // let tx = await ec.setOwner(domainHash, altAccount.address)
+    // await tx.wait()
+
+    // let tx2 = await ec.setSubnodeOwner(domainHash, subKeccak, altAccount.address)
+    // await tx2.wait()
+
+    let tx3 = await ec.setResolver(subdomainHash, altAccount.address)
+    await tx3.wait()
+
+
+    await printInfo()
+    //console.log(tx)
+    console.log("transferOwnership done")
+}
+
 const register = async () => {
     const contract = subdomainContract.connect(deployAccount)
     console.log("register...")
 
     let dk = ethers.utils.id(domain)
     let price = ethers.utils.parseEther(".05")
+
     let tx = await contract.register(dk, subdomain, utils.emptyAddress, newrinkebyResolver, {value: price})
     await tx.wait()
     console.log("register done")
@@ -165,6 +191,7 @@ const getControlBack = async () => {
 
     let sdc = new ethers.Contract(ensOwner, subdomainContract.interface.abi, deployAccount)
     let tx = await sdc.withdrawDomain(domainHash)
+
     await tx.wait()
     let ensOwner2 = await ensContract.owner(domainNamehash);
     console.log("Domain Owner: "  + ensOwner2)
@@ -245,6 +272,9 @@ const printInfo = async () => {
     console.log("Domain Owner: "  + ensOwner)
     let ensSubOwner = await ensContract.owner(subdomainNamehash);
     console.log("Subdomain Owner: "  + ensSubOwner)
+
+    let contractDomainOwner = await subdomainContract.owner(hashDomain);
+    console.log("Contract Domain Owner: ", contractDomainOwner)
     let contractDomainInfo = await subdomainContract.domains(hashDomain);
     console.log("Contract Domain info: ", contractDomainInfo)
     console.log("***********************************************")
